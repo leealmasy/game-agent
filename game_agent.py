@@ -43,13 +43,9 @@ def custom_score(game, player):
     ymid = -(-game.height//2) 
     xmid = -(-game.width//2) 
     # euclidean distance 2D to center
-    dist_own = ((xown-xmid)**2+(yown-ymid)**2)**0.5
-    dist_opp = ((xopp-xmid)**2+(yopp-ymid)**2)**0.5   
-    cust1 = (dist_own-2*dist_opp)
-    cust2 = custom_score2(game,player)
-    cust3 = custom_score3(game_player)
-    cust = 0.5*cust1  +0.25*cust2+0.25*cust3
-    return float(cust)
+    dist_own = (abs(xown-xmid)+abs(yown-ymid))
+    dist_opp = (abs(xopp-xmid)+abs(yopp-ymid))   
+    return float(dist_own-dist_opp)
    
     
 """
@@ -96,7 +92,7 @@ def custom_score_2(game, player):
     if x_opp >= xmid:
         xopp = game.width - x_opp
     else:
-        xopp = x_pp -game.width
+        xopp = x_opp -game.width
     if y_opp >= ymid:
         yopp = game.height - y_opp
     else:
@@ -138,22 +134,22 @@ def custom_score_3(game, player):
         return float("inf")
     own_cnt =0
     opp_cnt =0
-    
+
     own = game.get_legal_moves(player)
     for z in own:
         x,y = z
-        print('xy',x,y)
-        if x>=2 and x<=6 and y>=2 and y<=6:
+        if x>=1 and x<=5:
             own_cnt += 1
     
     opp = game.get_legal_moves(game.get_opponent(player))
     for z in opp:
         x,y = z
-        if x>=2 and x<=6 and y>=2 and y<=6:
+        if x>=1 and x<=5 and y>=1 and y<=5:
             opp_cnt += 1 
     
     
     return float(own_cnt-opp_cnt)   
+
 """
 ===============================================================================
 """
@@ -413,15 +409,14 @@ class AlphaBetaPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
         if not legal_moves: 
             return best_move
-        new_score= float("-inf")
+        
+        best_move = legal_moves[0]
         for move in legal_moves:  
-            alpha = max(alpha,new_score)
             new_score = self.min_value2(game.forecast_move(move),depth-1,alpha,beta)
-    
             if new_score >= best_score:
                 best_score = new_score
                 best_move = move
-                
+            alpha = max(alpha,new_score)    
         return best_move
 
     def max_value2(self,game,depth,alpha,beta):
@@ -430,18 +425,19 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         legal_moves = game.get_legal_moves()
         
-        #if not legal_moves: return self.score(game,self)
+        if not legal_moves: 
+            return self.score(game,self)
            
-        if depth == 0: return self.score(game,self)
+        if depth == 0: 
+            return self.score(game,self)
 
         new_score = float("-inf")
         
         for move in legal_moves:
             new_score = max(new_score,self.min_value2(game.forecast_move(move),depth-1,alpha,beta))
-
+            alpha = max(alpha,new_score)
             if new_score >= beta:
                 return new_score
-            alpha = max(alpha,new_score)
         return new_score
         
         
@@ -450,7 +446,8 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         legal_moves = game.get_legal_moves()
         
-        #if not legal_moves: return self.score(game,self)
+        if not legal_moves: 
+            return self.score(game,self)
            
         if depth == 0: return self.score(game,self)
 
@@ -458,8 +455,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         
         for move in legal_moves:
             new_score = min(new_score,self.min_value2(game.forecast_move(move),depth-1,alpha,beta))
-
+            beta = min(beta,new_score)
             if new_score <= alpha:
                 return new_score
-            beta = min(beta,new_score)
         return new_score
